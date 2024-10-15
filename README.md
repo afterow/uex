@@ -27,12 +27,12 @@
 
 创建一个名为“ScreenshotUtils.kt”的新 Kotlin 文件并复制以下代码：
 ``` kotlin
-myView = findViewById(R.id.myView)  
-saveButton = findViewById(R.id.saveButton)  // 绑定这个按钮为保存
-scrollView = findViewById(R.id.scrollView)  // 需要保存为图片view
-  
-saveButton.setOnClickListener {  
-    ScreenshotUtils.captureAndShowScreenshot(this, scrollView, "文件名")
+ var saveButton: Button = findViewById(R.id.save_button2)
+        var scrollView1: LinearLayout = findViewById(R.id.scrollView1)  // 需要保存为图片view
+        var scrollView2: LinearLayout = findViewById(R.id.scrollView2)  // 需要保存为图片view
+
+        saveButton.setOnClickListener {
+            ScreenshotUtils.captureAndShowScreenshot(this, scrollView1, scrollView2,fileName="文件名")
 ```
 ## Star History
 
