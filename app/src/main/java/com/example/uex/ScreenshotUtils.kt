@@ -1,8 +1,9 @@
-package com.example.uex
+package com.afterow.sanyaoyi.Utils
 
 import android.content.ContentValues
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Rect
 import android.net.Uri
 import android.widget.ImageView
 import android.widget.Toast
@@ -14,26 +15,52 @@ import android.view.View
 
 object ScreenshotUtils {
 
-    fun captureAndShowScreenshot(activity: AppCompatActivity, view: View, fileName: String) {
-        val bitmap = createBitmapFromView(view)
+    // 使用可变参数来支持一个或多个 View
+    fun captureAndShowScreenshot(activity: AppCompatActivity, vararg views: View, fileName: String) {
+        val bitmap = createBitmapFromViews(*views) // 使用展开运算符传递 View 数组
         showImageDialog(activity, bitmap, fileName)
     }
 
-    private fun createBitmapFromView(view: View): Bitmap {
-        val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
+    // 修改为接受可变数量的 View
+    private fun createBitmapFromViews(vararg views: View): Bitmap {
+        // 计算 Bitmap 的总宽度和高度
+        var totalWidth = 0
+        var totalHeight = 0
+        views.forEach { view ->
+            totalWidth = Math.max(totalWidth, view.width)
+            totalHeight += view.height
+        }
+
+        // 创建一个足够大的 Bitmap 来容纳所有 View
+        val bitmap = Bitmap.createBitmap(totalWidth, totalHeight, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
-        view.draw(canvas)
+
+        // 依次绘制每个 View，注意调整 y 坐标以避免重叠
+        var currentY = 0
+        views.forEach { view ->
+            canvas.translate(0f, currentY.toFloat()) // 移动到当前 y 位置
+            view.draw(canvas)
+            currentY += view.height // 更新 y 位置
+        }
+
         return bitmap
     }
 
     private fun showImageDialog(activity: AppCompatActivity, bitmap: Bitmap, fileName: String) {
-        val imageView = ImageView(activity).apply { setImageBitmap(bitmap) }
+        val imageView = ImageView(activity).apply {
+            setImageBitmap(bitmap)
+            // 调整 ImageView 的布局参数以适应 Bitmap 大小（如果需要）
+            layoutParams = android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        }
 
         AlertDialog.Builder(activity)
             .setTitle("生成的图片")
             .setView(imageView)
             .setPositiveButton("分享") { _, _ -> shareImage(activity, bitmap, fileName) }
-            .setNegativeButton("保存") { _, _ -> saveImageToGallery(activity, bitmap, fileName) } // 传入文件名
+            .setNegativeButton("保存") { _, _ -> saveImageToGallery(activity, bitmap, fileName) }
             .setNeutralButton("关闭") { dialog, _ ->
                 dialog.dismiss()
                 bitmap.recycle() // 释放 Bitmap 资源
